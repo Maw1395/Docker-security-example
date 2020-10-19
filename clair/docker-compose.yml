@@ -10,28 +10,35 @@ services:
       - POSTGRES_PASSWORD=ChangeMe
       - POSTGRES_USER=clair
       - POSTGRES_DB=clair
-    
+    ports:
+      - "5432:5432"
+
   clair:
-    image: quay.io/coreos/clair:v2.0.6
+    image: quay.io/coreos/clair:v2.1.6
     restart: unless-stopped
     volumes:
       - ./docker-compose-data/clair-config/:/config/:ro
       - ./docker-compose-data/clair-tmp/:/tmp/:rw
-    depends_on: 
+    depends_on:
       postgres:
         condition: service_started
     command: [--log-level=debug, --config, /config/config.yml]
     user: root
+    ports:
+      - "6060:6060"
+      - "6061:6061"
 
   clairctl:
     image: jgsqware/clairctl:latest
     restart: unless-stopped
-    environment: 
+    environment:
       - DOCKER_API_VERSION=1.24
     volumes:
       - ./docker-compose-data/clairctl-reports/:/reports/:rw
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    depends_on: 
-      clair: 
+    depends_on:
+      clair:
         condition: service_started
     user: root
+    ports:
+      - "44480:44480"
